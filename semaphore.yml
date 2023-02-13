@@ -1,0 +1,49 @@
+version: v1.0
+name: Deploy to Test
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+
+blocks:
+  - name: Unit-Tests
+    task:
+      jobs:
+        - name: Running tests
+          commands:
+            - echo 'Running tests'
+            - echo "File is generated"
+            - ./path/to/file.html
+      epilogue:
+        always:
+          commands:
+            - artifact push project ./path/to/file.html
+         
+promotions:
+  - name: dev deploy
+    pipeline_file: dev-deploy.yml
+    auto_promote:
+      when: "result = 'passed'"
+
+---
+
+# Path: dev-deploy.yml
+
+version: v1.0
+name: Deploy to Dev
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Deploy
+    task:
+      prologue:
+        commands:
+          - artifact pull project ./path/to/file.html
+      jobs:
+        - name: 'Everything'
+          commands:
+            - Get the file
+            - do something else
+            - ls ./path/to/file.html # No such file or directory
